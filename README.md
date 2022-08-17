@@ -12,7 +12,7 @@ and [BBS+ group digital signatures](https://github.com/mmlab-aueb/zkp-toolkit)
 applied to [Named Data Networking](https://named-data.net) architecture. For more information about
 the project, visit the project's [homepage](https://mm.aueb.gr/projects/second). 
 
-This project is funded by[NGIatlantic.eu](https://ngiatlantic.eu/about-ngiatlanticeu-initiative)
+This project is funded by [NGIatlantic.eu](https://ngiatlantic.eu/about-ngiatlanticeu-initiative)
 ## Contents
 
 ### Experiments

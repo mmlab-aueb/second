@@ -16,4 +16,4 @@ This project is funded by [NGIatlantic.eu](https://ngiatlantic.eu/about-ngiatlan
 ## Contents
 
 ### Experiments
-Information about our test cases. [Read more](experiments/) 
+[Read about test scenarios](experiments/) 

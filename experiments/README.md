@@ -29,6 +29,15 @@ measurements and output the ZKP verification result.
 
 ## Scenario 2: Human readable DIDs
 ### Description
+In this scenario a Producer uses certificateless public key cryptography to generate
+human readable DIDs, used for protecting content items. The DID document that corresponds
+to the Producer's DID is not included in the content item, instead it is retrieved
+using legacy NDN operations. This scenario demonstrates that due to the caching
+properties of NDN, DID documents are retrieved fast. The scenario includes two
+Consumers, which both request the same item and then request the DID document
+required for validating the retrieved item. It is shown that the second Consumer
+retrieves the DID document much faster. 
+
 ### Preparation
 This scenario depends on [charm crypto](https://github.com/JHUISI/charm). Install
 it dependencies using the following commands.
@@ -76,6 +85,13 @@ but it should be executed must faster, since it will used a cached copy of the D
 document.
 
 ## Scenario 3: Authorized prefix advertisements
+In this scenario a node acts as a `Gateway` to the NDN testbed. All Producers interact
+with the NDN testbed through this Gateway. Producers send `advertisements` to the
+Gateway, as well as Verifiable Credential that proves that they are authorized to
+advertise the specific prefix. If the Verifiable Credential is valid, the Gateway
+forwards the advertisement to the NDN testbed. An interest for an item advertised
+this way will flow to the Producer through the Gateway. 
+
 ### Description
 ### Preparation
 This scenario does not depend on any external package.

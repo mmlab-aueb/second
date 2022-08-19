@@ -1,6 +1,14 @@
 import json
 from canonicalization import JCan
 from ursa_bbs_signatures import BlsKeyPair, ProofMessage, ProofMessageType, CreateProofRequest, create_proof
+from typing import Optional
+from ndn.encoding import Name, Component
+from ndn.app import NDNApp
+from ndn.types import InterestNack, InterestTimeout, InterestCanceled, ValidationFailure
+from ndn.encoding import Name, InterestParam, BinaryStr, FormalName, MetaInfo, Component
+import asyncio
+import base64
+
 
 class Prover:
     def _get_proof_messages(self, messages, revealed_messages):
@@ -44,7 +52,7 @@ class Prover:
 
         return result
 
-    def generate_zkp(self, public_key: bytes, message:str, frame:str, signature:bytes) -> tuple[int, str, bytes]:
+    def generate_zkp(self, public_key: bytes, message:str, frame:str, signature:bytes) -> list:
         bls_pub_key = BlsKeyPair(public_key=public_key)
         signed_messages = JCan(json.loads(message))
         revealed_message_json = self._frame_message(json.loads(message),json.loads(frame))
@@ -66,10 +74,31 @@ class Prover:
         proof = create_proof(proof_request)
         return claims, json.dumps(revealed_message_json), proof
 
-if __name__ == '__main__':
-    import base64
-    import json
-    bbs_public_key = 'gh9/xep0FZmatNY1oQgQDDR3TFi6ZgAnXlaRt60Lm4fu0iGJT1+4t69EpHvGG0mqAv1CPIor6G50MzzPzC1sMUGwurGGMnSiUVkFpM6Fs3PnI/QQIsIkb+J6YlMmPBe5'
+prefix = "/ndn/gr/edu/mmlab1/aueb/second14"
+bbs_public_key = 'gh9/xep0FZmatNY1oQgQDDR3TFi6ZgAnXlaRt60Lm4fu0iGJT1+4t69EpHvGG0mqAv1CPIor6G50MzzPzC1sMUGwurGGMnSiUVkFpM6Fs3PnI/QQIsIkb+J6YlMmPBe5'
+    
+app = NDNApp()
+cert = app.keychain[prefix].default_key().default_cert()
+
+print("Will advertise:" + Name.to_str(cert.name))
+@app.route(cert.name)
+def cert_interest(name: FormalName, param: InterestParam, _app_param: Optional[BinaryStr]):
+    print("Received interest for key")
+    app.put_raw_packet(cert.data)
+
+
+print("Will advertise intermedite key: /ndn/gr/edu/mmlab1/KEY/%F7%9C%E4%D3gL%A2%21")
+@app.route("/ndn/gr/edu/mmlab1/KEY/%F7%9C%E4%D3gL%A2%21")
+def info_interest(name: FormalName, param: InterestParam, _app_param: Optional[BinaryStr]):
+    print("Received interest for intermediate key")
+    with open('/home/scn4ndn/mmlab.ndncert', "rb") as f:
+        key =  f.read()
+        app.put_data(name, content=key, freshness_period=100)
+
+print("Will advertise signed content")
+@app.route('/ndn/gr/edu/mmlab1/aueb/second14/measurement')
+def cv_interest(name: FormalName, param: InterestParam, _app_param: Optional[BinaryStr]):
+    print("Received interest for measurement")
     frame ={
         "measurements":{
             "temperature":"",
@@ -84,6 +113,9 @@ if __name__ == '__main__':
     bbs_signature = base64.b64decode(b64bbs_signature)
     bbs_prover = Prover()
     claims, revealed_message, zkp = bbs_prover.generate_zkp(public_key=base64.b64decode(bbs_public_key), message=json.dumps(message), frame=json.dumps(frame), signature=bbs_signature)
-    f = open("bbs-signed-private.txt", "w")
-    f.write(base64.b64encode(json.dumps(revealed_message).encode()).decode() + "."+ base64.b64encode(zkp).decode()+ "." + str(claims))
-    f.close()
+    raw_data = base64.b64encode(json.dumps(revealed_message).encode()).decode() + "."+ base64.b64encode(zkp).decode()+ "." + str(claims)
+    app.put_data(name, content=str.encode(raw_data), freshness_period=10000)
+
+if __name__ == '__main__':
+    app.run_forever()
+

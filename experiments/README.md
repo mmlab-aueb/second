@@ -85,6 +85,7 @@ but it should be executed must faster, since it will used a cached copy of the D
 document.
 
 ## Scenario 3: Authorized prefix advertisements
+### Description
 In this scenario a node acts as a `Gateway` to the NDN testbed. All Producers interact
 with the NDN testbed through this Gateway. Producers send `advertisements` to the
 Gateway, as well as Verifiable Credential that proves that they are authorized to
@@ -92,7 +93,7 @@ advertise the specific prefix. If the Verifiable Credential is valid, the Gatewa
 forwards the advertisement to the NDN testbed. An interest for an item advertised
 this way will flow to the Producer through the Gateway. 
 
-### Description
+
 ### Preparation
 This scenario does not depend on any external package.
 
